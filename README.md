@@ -1,18 +1,16 @@
 # Shopify Product Summary Microservice
 
-A small Node.js + TypeScript microservice that connects to a Shopify store and provides simple REST endpoints to fetch product data, product details, and store stats.  
-Built this as part of the Lucky Orange technical assessment.  
+This is a small Node.js + TypeScript project built for the Lucky Orange technical assessment.  
+It connects to a Shopify store using the GraphQL Admin API and provides a few simple REST endpoints to view product data and stats.
 
 ---
 
-## 🧰 Setup & Installation
+## Setup
 
-> ⚠️ Don’t commit the database file. It contains credentials.
+1. Unzip `main.db.zip` (password is in the email)  
+   and put the extracted `main.db` in the root folder.
 
-1. Unzip the `main.db.zip` file (password is in the email they sent).  
-   Place the extracted `main.db` in the root folder of this project.
-
-2. Create a `.env` file in the root with this line:
+2. Create a `.env` file:
    ```env
    DB_PATH=./main.db
    PORT=3000
@@ -30,18 +28,17 @@ Built this as part of the Lucky Orange technical assessment.
    ```
 
 You should see:
-```bash
+```
 [shopify] host: luckyorange-interview-test.myshopify.com
 API listening on http://localhost:3000
 ```
 
 ---
 
-## 🚀 API Endpoints
+## API Endpoints
 
-### 1️⃣ GET /products
-Returns a list of all products (sorted by title).  
-Each item has `id`, `title`, `price`, `inventory`, and `created_at`.
+### GET /products
+Returns all products sorted by title.
 
 Example:
 ```json
@@ -56,12 +53,9 @@ Example:
 ]
 ```
 
----
+### GET /products/:id
+Returns details of a single product.
 
-### 2️⃣ GET /products/:id
-Returns full details for a single product.
-
-Example:
 ```json
 {
   "id": "gid://shopify/Product/9435036647654",
@@ -72,12 +66,8 @@ Example:
 }
 ```
 
----
-
-### 3️⃣ GET /stats
-Aggregated product summary.
-
-Example:
+### GET /stats
+Returns overall store stats.
 ```json
 {
   "total_products": 5,
@@ -88,65 +78,53 @@ Example:
 
 ---
 
-## 🧠 Notes
+## SDK
 
-- Uses **Shopify GraphQL Admin API** (not REST).  
-- Credentials are read from `main.db` (table: `shopify_credentials`, `id=1`).  
-- Basic in-memory caching added for `/products`, `/stats`, and `/products/:id`.  
-- Entire service is written in **TypeScript** for type safety.  
-- Framework: **Express.js**  
+I also added a small Node.js SDK that calls the same endpoints.
 
----
-
-## 🧩 SDK
-
-The SDK wraps the REST endpoints to make them easier to use in Node.js.
-
+Example:
 ```ts
 import { ShopifySummarySDK } from './src/sdk/index.js';
 
 const sdk = new ShopifySummarySDK('http://localhost:3000');
 
 const products = await sdk.getProducts();
-const oneProduct = await sdk.getProductById(products[0].id);
+const product = await sdk.getProductById(products[0].id);
 const stats = await sdk.getStats();
 
-console.log(products.length, oneProduct.title, stats);
+console.log(products.length, product.title, stats);
 ```
 
----
-
-## 🧪 Quick SDK Test
-
-To test it directly:
+To test:
 ```bash
 npm run sdk:example
 ```
 
-Expected output:
-```yaml
-Total products: 5
-First product title: "404 Not Found" Coffee Mug
-Vendor: LuckyOrange Interview Test
-Stats: { total_products: 5, total_inventory: 157, average_price: 33.1 }
-```
+---
+
+## Notes
+
+- Uses **Shopify GraphQL Admin API**
+- Reads credentials from **main.db**
+- Has simple in-memory caching
+- Written in **TypeScript** using **Express**
+- Tested locally and returns correct JSON
 
 ---
 
-## ⚙️ Scripts
+## Scripts
 
 | Command | Description |
 |----------|-------------|
-| `npm run dev` | Run the API with tsx in watch mode |
-| `npm run build` | Compile TypeScript to dist |
+| `npm run dev` | Run the API in watch mode |
+| `npm run build` | Build the TypeScript code |
 | `npm start` | Run compiled server |
-| `npm run sdk:example` | Test SDK locally |
-| `npm run lint` | Run eslint |
+| `npm run sdk:example` | Run the SDK test |
+| `npm run lint` | Check code style |
 
 ---
 
-## 💡 Personal Notes
+## Personal Notes
 
-- The main hiccup was the **URL normalization** (`https://http://...`), fixed by stripping `http://` or `https://` before calling the Shopify API.  
-- Added simple caching to avoid multiple Shopify calls.  
-- All endpoints and the SDK were tested locally and return valid JSON responses.
+Had to fix an issue with store URL formatting (`https://http://` duplicate).  
+After cleaning that up, all endpoints and SDK calls worked fine.
